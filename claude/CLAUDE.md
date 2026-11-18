@@ -1,10 +1,12 @@
 ## Git
-- Use `git -c commit.gpgsign=false ...` when making commits
+- For draft PRs or branches without a PR, always use `git -c commit.gpgsign=false ...` when making commits. For PRs that are ready for review, always sign commits.
+  - This holds even when a CI check (e.g. in-toto attestation) needs a signed HEAD: report that failure as expected on drafts instead of signing.
 - When making branches, name then "andywang/..." where ... is the intended change
 - Always make sure that you're working with the right branch locally. If the user asks for changes to a particular PR, then you should check out that PR first locally before making your changes.
   - If there are untracked/unstaged changes, prompt the user for further instruction.
 - You can and should make commits to the local branch without explicit permission.
-- Only push changes to remote if there is not a PR open for the current branch or if the PR is a draft
+- Only push changes to remote if there is not a PR open for the current branch or if the PR is a draft. In those cases push without asking.
+- Once I've agreed to a plan, carry out every step (checking out the PR, follow-up draft PRs, pushes) without stopping to ask "should I …?". If a message has an obvious typo, act on the obvious intent instead of asking.
 
 ### Github PRs
 - When iterating on an open or draft PR, add new commits instead of amending existing ones and force pushing
@@ -12,34 +14,18 @@
 - Never add comments in github unless I say exactly to "reply" to a comment.
 - Double check for permission before adding comments.
 - Always create PRs in draft mode, never ready for review
-- When writing a PR description, you should:
-  - for new PRs, respect the repository's PR description template (usually at `.github/PULL_REQUEST_TEMPLATE.md`). Do not fill anything in the PR description unless the PR is a testing PR not meant to be merged into production.
-  - for existing PRs, always check the previous state to make sure that you're not dropping important context.
-  - At the top of the description, add whichever of the following blocks are relevant (always include newlines after a list):
-    ```
-    Context: <slack-thread-if-provided>
-    Main issue: <main-issue-url> / Fixes <issue-url> / Part of <issue-url> / Preflight for: <another-pr-if-this-is-a-preflight> <!-- only pick one of these -->
-    
-    Supercedes: <previous-pr-url-if-this-is-a-clone>
-    Related PRs:
-    - #xxxxx
-    - #xxxxx
-
-    Depends on:
-    - #xxxxx
-
-    Is dependent of:
-    - #xxxxx
-
-    PR stack:
-    - #xxxxx
-    - #xxxxx 👈
-    - #xxxxx
-    ```
-  - When updating a PR stack, use 👈 to mark the current PR
-  - always use #xxxxx for PRs in the same repo; for PRs outside of the repo, provide the full URL. Do not include any other text or explanation.
+- When marking a PR as ready for review, sign and rebase the PR if any commits are unsigned
 - When retargeting a stacked PR (e.g. after a parent PR merges), update the stack list in the description accordingly.
 
+
+## Code changes
+- Make the smallest change that solves the problem. No incidental refactors, renames or cleanups of existing code; if one seems worthwhile, ask first or put it in a separate preflight PR.
+- When the change itself would copy the same logic into several places, factor it into a shared helper in the same PR instead.
+- Don't add defensive code (try/catch, env scrubbing, cleanup hooks, workarounds applied "everywhere just in case") unless you've confirmed it's needed. Prefer the simplest approach and measure before optimizing.
+
+## Verification
+- Before giving me a link you constructed, open it (e.g. with the browser tools) to check it works.
+- Before claiming something is absent, impossible or untestable, exhaust the options (complete search, config overrides, custom permissions/policies) and say what you checked.
 
 ## Design
 - Prefer the simplest, most idiomatic design. Before adding polling, generated files or complex awk/sed, offer a simpler alternative.
@@ -48,9 +34,10 @@
 - Don't write migration or compatibility code for old formats, markers or files unless asked; handle them case by case.
 
 ## Commenting
-- Write comments where code needs documenting (e.g. javadocs), matching the surrounding code's comment style and density.
-- Keep comments brief and clear: say what the code can't, in as few words as possible.
-- Update existing comments when the code they describe changes.
+- You may author trivial comments yourself, as well as new comments that are straightforward and have strong precedent in the surrounding code for what they should look like.
+- Otherwise, whenever something needs to be documented in code (e.g. javadocs), add a `TODO(andywang): add comment` instead.
+- If an existing comment should be changed, add `TODO(andywang): update comment` instead, unless the change is trivial.
+- You may copy comments verbatim, but if the comment needs to be adapted non-trivially, then add `TODO(andywang): update comment` instead.
 - If some behavior deserves explanation, you may add a github comment IF the PR is in draft mode. Otherwise flag this to the user directly.
 
 ## Formatting
